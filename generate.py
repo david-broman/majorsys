@@ -4,6 +4,7 @@
 
 import json
 import xmltodict
+import csv
 
 # Files
 database = "folkets_sv_en_public.xml"
@@ -39,8 +40,9 @@ def extract_from_phonetic(phonetic):
 
 # Word list mapping. Note how the order matters.
 wlist = [
-    ("6", ["jj", "j", "sj", "sch", " ge", " gi", " gy", " gä", " gö",
-           "ke", "ki", "ky", "kä", "kö", "ch"]),
+    ("41", ["rld"]),
+    ("6", ["jj", "j", "skj", "sj", "sch", " ge", " gi", " gy", " gä", " gö",
+           "lju", "ke", "ki", "ky", "kä", "kö", "ch"]),
     ("7", ["ck", "kk", "k", "gg", "g", "ca", "co", "cu", "cå"]),
     ("0", ["ss", "s", "zz", "s", "c"]),
     ("1", ["tt", "t", "dd", "d"]),
@@ -108,6 +110,8 @@ with open(database) as xml_file:
               x["@class"] if "@class" in x else "")
              for x in data["dictionary"]["word"]]
 
+    # Patch words
+
     # Print statistics
     print("Printing statistics...")
     print("  Total number of words:", len(words))
@@ -135,17 +139,16 @@ with open(database) as xml_file:
               number_w = extract_from_word(word)
               # Fix strange ending of phonetic
               if number_p != number_w:
-                  if (my_endswith(phonetic, ["er","ar","a:r"])
+                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r"])
                       and number_w == number_p[0:len(number_p)-1]):
                     number_p = number_p[0:len(number_p)-1]
 
               if number_p == number_w:
-                  print("OK!\n")
                   no_ok += 1
               else:
                   no_error += 1
-                  print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
-                  print(f'number_w: {number_w}, number_p: {number_p}\n')
+                  #print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
+                  #print(f'number_w: {number_w}, number_p: {number_p}\n')
 
         # Summarize errors when extracting from words
         print(f'  Number of tests for number extraction: {no_ok + no_error}')
