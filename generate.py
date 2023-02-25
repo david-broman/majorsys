@@ -47,9 +47,11 @@ wlist = [
     ("27", ["nk"]),
     ("56", ["alg"]),
     ("046", ["sorg"]),
+    ("207", ["nsk"]),
+    ("22", ["ägn", "agn"]),
     ("47", ["rk"]),
     ("6", ["jj", "j", "skj", "sky", "ski", "sj", "sch", " ge", " gi", " gy", " gä", "gö",
-           "lju", "ke", "ki", "ky", "kä", "kö", "ch", "tio"]),
+           "lju", "ske", "ke", "ki", "ky", "kä", "kö", "ch", "tio"]),
     ("7", ["ck", "kk", "k", "K", "gg", "g", "G", "ca", "co", "cu", "cå"]),
     ("0", ["ss", "s", "S", "zz", "s", "c"]),
     ("1", ["tt", "t", "T", "dd", "d", "D"]),
@@ -60,6 +62,7 @@ wlist = [
     ("8", ["ff", "f", "F", "vv", "v", "V"]),
     ("9", ["pp", "p", "P", "bb", "b", "B"])
 ]
+
 
 # Extract number from word using the wlist
 def extract_from_word(word):
