@@ -41,7 +41,9 @@ def extract_from_phonetic(phonetic):
 # Word list mapping. Note how the order matters.
 wlist = [
     ("41", ["rld"]),
-    ("6", ["jj", "j", "skj", "sj", "sch", " ge", " gi", " gy", " gä", " gö",
+    ("22", ["egn"]),
+    ("427", ["rng"]),
+    ("6", ["jj", "j", "skj", "sky", "sj", "sch", " ge", " gi", " gy", " gä", "gö",
            "lju", "ke", "ki", "ky", "kä", "kö", "ch"]),
     ("7", ["ck", "kk", "k", "gg", "g", "ca", "co", "cu", "cå"]),
     ("0", ["ss", "s", "zz", "s", "c"]),
@@ -74,7 +76,7 @@ def extract_from_word(word):
             i += 1
     return num
 
-# Classes of words
+# Classes of words'
 noun = "nn"
 verb = "vb"
 adjective = "jj"
@@ -105,18 +107,28 @@ with open(database) as xml_file:
 
     # Extracts words
     print("Extracts triple (word, phonetic, class)...")
-    words = [(x["@value"].replace("|",""),
-              x["phonetic"]["@value"] if "phonetic" in x else "",
-              x["@class"] if "@class" in x else "")
-             for x in data["dictionary"]["word"]]
+    words = {x["@value"].replace("|",""):
+              (x["phonetic"]["@value"] if "phonetic" in x else "",
+               x["@class"] if "@class" in x else "")
+             for x in data["dictionary"]["word"]}
 
     # Patch words
+    # Format: word,phonetic,class,number
+    # If a number is given, it is taken as the truth
+    # If class = 'remove', then the word is removed instead of added.
+    with open("patch.csv", 'r') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for r in csv_reader:
+            if r[2] == "remove":
+                del words[r[0]]
+            words[r[0]] = (r[1],r[2])
 
     # Print statistics
     print("Printing statistics...")
     print("  Total number of words:", len(words))
     def print_stats(text, abbrv, without_phonetic):
-        count = [1 for (w,p,c) in words if (without_phonetic or p != "") and c == abbrv]
+        count = [1 for (w,(p,c)) in words.items()
+                 if (without_phonetic or p != "") and c == abbrv]
         print(text, len(count))
     print_stats("  Total number of nouns:", "nn", True)
     print_stats("  Number of nouns with phonetic:", "nn", False)
@@ -131,7 +143,7 @@ with open(database) as xml_file:
     with open("words.txt", "w") as txt_file:
         no_ok = 0
         no_error = 0
-        for (word,phonetic,class_) in words:
+        for (word,(phonetic,class_)) in words.items():
           if phonetic != "":
               number_p = extract_from_phonetic(phonetic)
               txt_file.write(f'\"{word}\", \"{phonetic}\", {number_p}\n')
@@ -147,8 +159,8 @@ with open(database) as xml_file:
                   no_ok += 1
               else:
                   no_error += 1
-                  #print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
-                  #print(f'number_w: {number_w}, number_p: {number_p}\n')
+                  print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
+                  print(f'number_w: {number_w}, number_p: {number_p}\n')
 
         # Summarize errors when extracting from words
         print(f'  Number of tests for number extraction: {no_ok + no_error}')
