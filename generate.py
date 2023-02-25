@@ -24,6 +24,7 @@ pmap = {
     "l"  : "5",
     "j"  : "6",
     "$"  : "6",
+    "c"  : "6",
     "k"  : "7",
     "g"  : "7",
     "f"  : "8",
@@ -36,10 +37,11 @@ pmap = {
 def extract_from_phonetic(phonetic):
     return ''.join([pmap[x] for x in list(phonetic) if x in pmap])
 
+# Word list mapping. Note how the order matters.
 wlist = [
-    ("6", ["jj", "j", "sj", "sch", "ge", "gi", "gy", "gä", "gö",
+    ("6", ["jj", "j", "sj", "sch", " ge", " gi", " gy", " gä", " gö",
            "ke", "ki", "ky", "kä", "kö", "ch"]),
-    ("7", ["ck", "kk", "k", "gg", "g"]),
+    ("7", ["ck", "kk", "k", "gg", "g", "ca", "co", "cu", "cå"]),
     ("0", ["ss", "s", "zz", "s", "c"]),
     ("1", ["tt", "t", "dd", "d"]),
     ("2", ["ng", "nn", "n"]),
@@ -50,7 +52,9 @@ wlist = [
     ("9", ["pp", "p", "bb", "b"])
 ]
 
+# Extract number from word using the wlist
 def extract_from_word(word):
+    word = " " + word
     num = ""
     i = 0
     while(i < len(word)):
@@ -77,6 +81,13 @@ adjective = "jj"
 def read_file(file):
     with open(file) as f:
         return f.read()
+
+# Helper, check if ends with one of the alternatives
+def my_endswith(str, lst):
+    for x in lst:
+        if str.endswith(x):
+            return True
+    return False
 
 # Open the free Swedish database with words
 with open(database) as xml_file:
@@ -114,11 +125,31 @@ with open(database) as xml_file:
     word_map = {}
     print("Generate numbers according to the major system...")
     with open("words.txt", "w") as txt_file:
+        no_ok = 0
+        no_error = 0
         for (word,phonetic,class_) in words:
           if phonetic != "":
-              number = extract_from_phonetic(phonetic)
-              txt_file.write(f'\"{word}\", \"{phonetic}\", {number}\n')
-              word_map[word] = (number, class_)
+              number_p = extract_from_phonetic(phonetic)
+              txt_file.write(f'\"{word}\", \"{phonetic}\", {number_p}\n')
+              word_map[word] = (number_p, class_)
+              number_w = extract_from_word(word)
+              # Fix strange ending of phonetic
+              if number_p != number_w:
+                  if (my_endswith(phonetic, ["er","ar","a:r"])
+                      and number_w == number_p[0:len(number_p)-1]):
+                    number_p = number_p[0:len(number_p)-1]
+
+              if number_p == number_w:
+                  print("OK!\n")
+                  no_ok += 1
+              else:
+                  no_error += 1
+                  print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
+                  print(f'number_w: {number_w}, number_p: {number_p}\n')
+
+        # Summarize errors when extracting from words
+        print(f'  Number of tests for number extraction: {no_ok + no_error}')
+        print(f'  Number of errors for number extraction: {no_error}')
 
     # Sort into number order
     num_map = {}
