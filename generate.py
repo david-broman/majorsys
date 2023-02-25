@@ -131,6 +131,10 @@ with open(database) as xml_file:
                 del words[r[0]]
             words[r[0]] = (r[1],r[2])
 
+    # Remove strings with space
+    for w in [w for (w,_) in words.items() if ' ' in w]:
+        del words[w]
+
     # Print statistics
     print("Printing statistics...")
     print("  Total number of words:", len(words))
