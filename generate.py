@@ -5,9 +5,10 @@ import xmltodict
 
 # Files
 database = "folkets_sv_en_public.xml"
-html_header = "header.html"
-html_description = "description.html"
-html_footer = "footer.html"
+html_header = "html/header.html"
+html_description = "html/description.html"
+html_footer = "html/footer.html"
+no_of_digits = 3
 
 # Mapping of phonetic IPA symbols to numbers. Note that focus is on Swedish sounds.
 pmap = {
@@ -38,25 +39,34 @@ adjective = "jj"
 def extract_from_phonetic(phonetic):
     return ''.join([pmap[x] for x in list(phonetic) if x in pmap])
 
+def read_file(file):
+    with open(file) as f:
+        return f.read()
+
 # Open the free Swedish database with words
 with open(database) as xml_file:
 
     # Read, parse, and convert the lexicon to a dictionary
     print("Parsing XML file...")
     data = xmltodict.parse(xml_file.read())
-    words = data["dictionary"]["word"]
 
     # Save it as JSON for easier analysis
     print("Saving JSON file with complete dictionary...")
     with open("folkets.json", "w") as json_file:
         json_file.write(json.dumps(data, indent=4))
 
+    # Extracts words
+    print("Extracts triple (word, phonetic, class)...")
+    words = [(x["@value"].replace("|",""),
+              x["phonetic"]["@value"] if "phonetic" in x else "",
+              x["@class"] if "@class" in x else "")
+             for x in data["dictionary"]["word"]]
+
     # Print statistics
     print("Printing statistics...")
     print("  Total number of words:", len(words))
     def print_stats(text, abbrv, without_phonetic):
-        count = [1 for w in words if "@class" in w and
-                 (without_phonetic or "phonetic" in w) and w["@class"] == abbrv]
+        count = [1 for (w,p,c) in words if (without_phonetic or p != "") and c == abbrv]
         print(text, len(count))
     print_stats("  Total number of nouns:", "nn", True)
     print_stats("  Number of nouns with phonetic:", "nn", False)
@@ -65,17 +75,33 @@ with open(database) as xml_file:
     print_stats("  Total number of adjectives:", "jj", True)
     print_stats("  Number of adjectives with phonetic:", "jj", False)
 
-    # Extract numbers, classes, and words. Avoid duplicates
+    # Extract numbers, classes, and words. Avoid word duplicates
     word_map = {}
-    print("Save word file with phonetics...")
+    print("Generate numbers according to the major system...")
     with open("words.txt", "w") as txt_file:
-        for w in words:
-            if "@class" in w and "phonetic" in w:
-                word = w["@value"]
-                phonetic = w["phonetic"]["@value"]
-                number = extract_from_phonetic(phonetic)
-                txt_file.write(f'\"{word}\", \"{phonetic}\", {number}\n')
-                word_map[word] = (number, w["@class"])
+        for (word,phonetic,class_) in words:
+          if phonetic != "" and class_ != "":
+              number = extract_from_phonetic(phonetic)
+              txt_file.write(f'\"{word}\", \"{phonetic}\", {number}\n')
+              word_map[word] = (number, class_)
+
+    # Sort into number order
+    num_map = {}
+    for (word, (num, class_)) in word_map.items():
+        if len(num) >= no_of_digits and class_ == noun:
+            num2 = num[0:no_of_digits]
+            if num2 in num_map:
+                num_map[num2].append(word)
+            else:
+                num_map[num2] = []
+    print(len(num_map))
 
     # Generate html file
-    print(word_map)
+    with open("major.html", "w") as txt_file:
+        txt_file.write(read_file(html_header))
+        txt_file.write(read_file(html_description))
+        txt_file.write("Hello")
+        for (num, words) in sorted(num_map.items()):
+            word_list = ', '.join(words)
+            txt_file.write(f'<p><b>Number {num}</b><br>{word_list}<br>')
+        txt_file.write(read_file(html_footer))
