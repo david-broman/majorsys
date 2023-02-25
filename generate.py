@@ -1,4 +1,6 @@
-
+# Simple scripts that extracts numbers for Swedish words, according
+# to the mnemonic major system
+# By David Broman (C) Copyright 2023. MIT License.
 
 import json
 import xmltodict
@@ -30,15 +32,48 @@ pmap = {
     "b"  : "9"
 }
 
+# Extract a sequence of numbers from a phonetic string
+def extract_from_phonetic(phonetic):
+    return ''.join([pmap[x] for x in list(phonetic) if x in pmap])
+
+wlist = [
+    ("6", ["jj", "j", "sj", "sch", "ge", "gi", "gy", "gä", "gö",
+           "ke", "ki", "ky", "kä", "kö", "ch"]),
+    ("7", ["ck", "kk", "k", "gg", "g"]),
+    ("0", ["ss", "s", "zz", "s", "c"]),
+    ("1", ["tt", "t", "dd", "d"]),
+    ("2", ["ng", "nn", "n"]),
+    ("3", ["mm", "m"]),
+    ("4", ["rr", "r"]),
+    ("5", ["ll", "l"]),
+    ("8", ["ff", "f", "vv", "v"]),
+    ("9", ["pp", "p", "bb", "b"])
+]
+
+def extract_from_word(word):
+    num = ""
+    i = 0
+    while(i < len(word)):
+        next = False
+        for (k, lst) in wlist:
+            if next:
+                break
+            for l in lst:
+                if word[i:i+len(l)] == l:
+                    num += k
+                    i += len(l)
+                    next = True
+                    break
+        if not next:
+            i += 1
+    return num
+
 # Classes of words
 noun = "nn"
 verb = "vb"
 adjective = "jj"
 
-# Extract a sequence of numbers from a phonetic string
-def extract_from_phonetic(phonetic):
-    return ''.join([pmap[x] for x in list(phonetic) if x in pmap])
-
+# Helper for reading a file
 def read_file(file):
     with open(file) as f:
         return f.read()
@@ -80,7 +115,7 @@ with open(database) as xml_file:
     print("Generate numbers according to the major system...")
     with open("words.txt", "w") as txt_file:
         for (word,phonetic,class_) in words:
-          if phonetic != "" and class_ != "":
+          if phonetic != "":
               number = extract_from_phonetic(phonetic)
               txt_file.write(f'\"{word}\", \"{phonetic}\", {number}\n')
               word_map[word] = (number, class_)
@@ -94,7 +129,7 @@ with open(database) as xml_file:
                 num_map[num2].append(word)
             else:
                 num_map[num2] = []
-    print(len(num_map))
+    print("  Total number of generated numbers:", len(num_map))
 
     # Generate html file
     with open("major.html", "w") as txt_file:
