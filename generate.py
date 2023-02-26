@@ -103,6 +103,7 @@ def my_endswith(str, lst):
             return True
     return False
 
+
 # Open the free Swedish database with words
 with open(database) as xml_file:
 
@@ -133,10 +134,16 @@ with open(database) as xml_file:
                 del words[r[0]]
             words[r[0]] = (r[1],r[2])
 
-    # Remove strings with space
+    # Remove strings with space from words
     for w in [w for (w,_) in words.items() if ' ' in w]:
         del words[w]
 
+    # Clean up phonetic strings wit (et.
+    for (w,(p,c)) in words.items():
+        p = p[0:p.find("el.") if p.find("el.") >= 0 else len(p)]
+        p = p.replace(" ", "").replace("(", "")
+        words[w] = (p,c)
+        
     # Print statistics
     print("Printing statistics...")
     print("  Total number of words:", len(words))
@@ -165,7 +172,7 @@ with open(database) as xml_file:
               number_w = extract_from_word(word)
               # Fix strange ending of phonetic
               if number_p != number_w:
-                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r", "å:r"])
+                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r", "å:r", "o:r"])
                       and number_w == number_p[0:len(number_p)-1]):
                     number_p = number_p[0:len(number_p)-1]
 
