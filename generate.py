@@ -50,8 +50,9 @@ wlist = [
     ("207", ["nsk"]),
     ("22", ["ägn", "agn"]),
     ("47", ["rk"]),
-    ("6", ["jj", "j", "skj", "sky", "ski", "sj", "sch", " ge", " gi", " gy", " gä", "gö",
-           "lju", "ske", "ke", "ki", "ky", "kä", "kö", "ch", "tio"]),
+    ("6", ["jj", "j", "skj", "sky", "ski", "sj", "sch", " ge", " gi",
+           "gy", "gä", "gö", "gj", "lju", "ske", "ke", "ki", "ky",
+           "kä", "kö", "ch", "tio"]),
     ("7", ["ck", "kk", "k", "K", "gg", "g", "G", "ca", "co", "cu", "cå"]),
     ("0", ["ss", "s", "S", "zz", "s", "c"]),
     ("1", ["tt", "t", "T", "dd", "d", "D"]),
@@ -163,7 +164,7 @@ with open(database) as xml_file:
               number_w = extract_from_word(word)
               # Fix strange ending of phonetic
               if number_p != number_w:
-                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r"])
+                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r", "å:r"])
                       and number_w == number_p[0:len(number_p)-1]):
                     number_p = number_p[0:len(number_p)-1]
 
