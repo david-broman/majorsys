@@ -45,19 +45,23 @@ wlist = [
     ("41", ["rld"]),
     ("22", ["egn"]),
     ("427", ["rng"]),
-    ("70", ["x"]),
+    ("70", ["x", "acc"]),
     ("27", ["nk"]),
     ("56", ["alg", "älg"]),
-    ("46", ["org"]),
+    ("46", ["org", "ärg"]),
     ("207", ["nsk"]),
-    ("22", ["ägn", "agn"]),
+    ("26", ["ngi", "ange"]),
+    ("22", ["ägn", "agn", "ign"]),
     ("47", ["rk"]),
     ("7", ["ake", "eke", "ike", "oke", "uke", "yke", "åke", "äke", "öke",
+           "aki", "eki", "iki", "oki", "uki", "yki", "åki", "äki", "öki",
+           "age", "ege", "ige", "oge", "uge", "yge", "åge", "äge", "öge",
            "agi", "ogi", "ugi", "ågi"]),
-    ("6", ["jj", "j", "skj", "sky", "ski", "skö", "sj", "sch", " ge", "gi",
-           "sio", "skä",
-           "gy", "gä", "gö", "gj", "lju", "ske", "ke", "ki", "ky",
-           "kä", "kö", "ch", "tio"]),
+    ("6", ["jj", "j", "skj", "sky", "ski", "skö", "sj", "sch",
+           "ke", "ki", "ky", "kä", "kö",
+           "ge", "gi", "gy", "gä", "gö", "gj",
+           "tj", "lju", "ske", "sio", "skä",
+           "ch", "tio"]),
     ("7", ["ck", "kk", "k", "K", "gg", "g", "G", "ca", "co", "cu", "cå"]),
     ("0", ["ss", "s", "S", "zz", "z", "s", "c"]),
     ("1", ["tt", "t", "T", "dd", "d", "D"]),
@@ -176,7 +180,8 @@ with open(database) as xml_file:
               number_w = extract_from_word(word)
               # Fix strange ending of phonetic
               if number_p != number_w:
-                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r", "å:r", "o:r"])
+                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r",
+                                             "å:r", "o:r", "ir", "i:r"])
                       and number_w == number_p[0:len(number_p)-1]):
                     number_p = number_p[0:len(number_p)-1]
 
