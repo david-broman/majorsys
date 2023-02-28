@@ -5,13 +5,39 @@
 import json
 import xmltodict
 import csv
+import sys
+
+
+# Classes of words'
+noun = "nn"
+verb = "vb"
+adjective = "jj"
 
 # Files
-database = "folkets_sv_en_public.xml"
-html_header = "html/header.html"
-html_description = "html/description.html"
-html_footer = "html/footer.html"
-no_of_digits = 3
+#database = "folkets_sv_en_public.xml"
+#html_header = "html/header.html"
+#html_description = "html/description.html"
+#html_footer = "html/footer.html"
+#no_of_digits = 2
+#include_larger = False
+#word_type = noun
+
+if len(sys.argv) <= 7:
+    print("Usage:")
+    print("  python3 generate <database-file> <header-file> <description-file> <footer-file> <no-of-digits> <include-larger-nums> <word-type>")
+    print("\nExample:")
+    print("  python3 generate.py folkets_sv_en_public.xml html/header.html html/description.html html/footer.html 3 false noun")
+    exit(1)
+
+database = sys.argv[1]
+html_header = sys.argv[2]
+html_description = sys.argv[3]
+html_footer = sys.argv[4]
+no_of_digits = int(sys.argv[5])
+include_larger = True if sys.argv[6] == "true" else False
+word_type = noun if sys.argv[7] == "noun" else (verb if sys.argv[7] == "verb" else adjective)
+
+print(include_larger)
 
 # Mapping of phonetic IPA symbols to numbers. Note that focus is on Swedish sounds.
 pmap = {
@@ -53,6 +79,7 @@ wlist = [
     ("26", ["ngi", "ange"]),
     ("22", ["ägn", "agn", "ign"]),
     ("47", ["rk"]),
+    ("57", ["lke"]),
     ("7", ["ake", "eke", "ike", "oke", "uke", "yke", "åke", "äke", "öke",
            "aki", "eki", "iki", "oki", "uki", "yki", "åki", "äki", "öki",
            "age", "ege", "ige", "oge", "uge", "yge", "åge", "äge", "öge",
@@ -94,10 +121,6 @@ def extract_from_word(word):
             i += 1
     return num
 
-# Classes of words'
-noun = "nn"
-verb = "vb"
-adjective = "jj"
 
 # Helper for reading a file
 def read_file(file):
@@ -176,7 +199,6 @@ with open(database) as xml_file:
           if phonetic != "":
               number_p = extract_from_phonetic(phonetic)
               txt_file.write(f'\"{word}\", \"{phonetic}\", {number_p}\n')
-              word_map[word] = (number_p, class_)
               number_w = extract_from_word(word)
               # Fix strange ending of phonetic
               if number_p != number_w:
@@ -184,13 +206,14 @@ with open(database) as xml_file:
                                              "å:r", "o:r", "ir", "i:r"])
                       and number_w == number_p[0:len(number_p)-1]):
                     number_p = number_p[0:len(number_p)-1]
+              word_map[word] = (number_p, class_)
 
               if number_p == number_w:
                   no_ok += 1
               else:
                   no_error += 1
-                  print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
-                  print(f'number_w: {number_w}, number_p: {number_p}\n')
+                  #print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
+                  #print(f'number_w: {number_w}, number_p: {number_p}\n')
 
         # Summarize errors when extracting from words
         print(f'  Number of tests for number extraction: {no_ok + no_error}')
@@ -199,7 +222,7 @@ with open(database) as xml_file:
     # Sort into number order
     num_map = {}
     for (word, (num, class_)) in word_map.items():
-        if len(num) >= no_of_digits and class_ == noun:
+        if (len(num) == no_of_digits or (include_larger and len(num) > no_of_digits)) and class_ == word_type:
             num2 = num[0:no_of_digits]
             if num2 in num_map:
                 num_map[num2].append(word)
@@ -211,8 +234,8 @@ with open(database) as xml_file:
     with open("major.html", "w") as txt_file:
         txt_file.write(read_file(html_header))
         txt_file.write(read_file(html_description))
-        txt_file.write("Hello")
         for (num, words) in sorted(num_map.items()):
             word_list = ', '.join(words)
-            txt_file.write(f'<p><b>Number {num}</b><br>{word_list}<br>')
+            if len(words) != 0:
+                txt_file.write(f'<p><b>Number {num}</b><br>{word_list}<br>')
         txt_file.write(read_file(html_footer))
