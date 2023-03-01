@@ -13,20 +13,14 @@ noun = "nn"
 verb = "vb"
 adjective = "jj"
 
-# Files
-#database = "folkets_sv_en_public.xml"
-#html_header = "html/header.html"
-#html_description = "html/description.html"
-#html_footer = "html/footer.html"
-#no_of_digits = 2
-#include_larger = False
-#word_type = noun
-
 if len(sys.argv) <= 7:
     print("Usage:")
-    print("  python3 generate <database-file> <header-file> <description-file> <footer-file> <no-of-digits> <include-larger-nums> <word-type>")
+    print("  python3 generate <database-file> <header-file> " +
+          "<description-file> <footer-file> <no-of-digits> " +
+          "<include-larger-nums> <word-type>")
     print("\nExample:")
-    print("  python3 generate.py folkets_sv_en_public.xml html/header.html html/description.html html/footer.html 3 false noun")
+    print("  python3 generate.py folkets_sv_en_public.xml " +
+          "html/header.html html/description.html html/footer.html 3 false noun")
     exit(1)
 
 database = sys.argv[1]
@@ -35,9 +29,9 @@ html_description = sys.argv[3]
 html_footer = sys.argv[4]
 no_of_digits = int(sys.argv[5])
 include_larger = True if sys.argv[6] == "true" else False
-word_type = noun if sys.argv[7] == "noun" else (verb if sys.argv[7] == "verb" else adjective)
+word_type = noun if sys.argv[7] == "noun" else \
+    (verb if sys.argv[7] == "verb" else adjective)
 
-print(include_larger)
 
 # Mapping of phonetic IPA symbols to numbers. Note that focus is on Swedish sounds.
 pmap = {
@@ -101,7 +95,8 @@ wlist = [
 ]
 
 
-# Extract number from word using the wlist
+# Extract number from word using the wlist. Experimental and not
+# currently used in the main function
 def extract_from_word(word):
     word = " " + word
     num = ""
@@ -216,13 +211,15 @@ with open(database) as xml_file:
                   #print(f'number_w: {number_w}, number_p: {number_p}\n')
 
         # Summarize errors when extracting from words
-        print(f'  Number of tests for number extraction: {no_ok + no_error}')
-        print(f'  Number of errors for number extraction: {no_error}')
+        # print(f'  Number of tests for number extraction: {no_ok + no_error}')
+        # print(f'  Number of errors for number extraction: {no_error}')
 
     # Sort into number order
     num_map = {}
     for (word, (num, class_)) in word_map.items():
-        if (len(num) == no_of_digits or (include_larger and len(num) > no_of_digits)) and class_ == word_type:
+        if (len(num) == no_of_digits or (include_larger and \
+                                         len(num) > no_of_digits)) and \
+                                         class_ == word_type:
             num2 = num[0:no_of_digits]
             if num2 in num_map:
                 num_map[num2].append(word)
@@ -231,6 +228,7 @@ with open(database) as xml_file:
     print("  Total number of generated numbers:", len(num_map))
 
     # Generate html file
+    print("Generates HTML file (currently only using phonetic encoding)...")
     with open("major.html", "w") as txt_file:
         txt_file.write(read_file(html_header))
         txt_file.write(read_file(html_description))
