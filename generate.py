@@ -13,24 +13,22 @@ noun = "nn"
 verb = "vb"
 adjective = "jj"
 
-if len(sys.argv) <= 7:
+if len(sys.argv) <= 6:
     print("Usage:")
-    print("  python3 generate <database-file> <header-file> " +
-          "<description-file> <footer-file> <no-of-digits> " +
-          "<include-larger-nums> <word-type>")
+    print("  python3 generate <database-file> <out-file> <no-of-digits> " +
+          "<include-larger-nums> <word-type> <title>")
     print("\nExample:")
-    print("  python3 generate.py folkets_sv_en_public.xml " +
-          "html/header.html html/description.html html/footer.html 3 false noun")
+    print("  python3 generate.py folkets_sv_en_public.xml major.html " + \
+          f'3 false noun "Test"\n')
     exit(1)
 
 database = sys.argv[1]
-html_header = sys.argv[2]
-html_description = sys.argv[3]
-html_footer = sys.argv[4]
-no_of_digits = int(sys.argv[5])
-include_larger = True if sys.argv[6] == "true" else False
-word_type = noun if sys.argv[7] == "noun" else \
-    (verb if sys.argv[7] == "verb" else adjective)
+output_file = sys.argv[2]
+no_of_digits = int(sys.argv[3])
+include_larger = True if sys.argv[4] == "true" else False
+word_type = noun if sys.argv[5] == "noun" else \
+    (verb if sys.argv[5] == "verb" else adjective)
+title = sys.argv[6]
 
 
 # Mapping of phonetic IPA symbols to numbers. Note that focus is on Swedish sounds.
@@ -230,10 +228,8 @@ with open(database) as xml_file:
     # Generate html file
     print("Generates HTML file (currently only using phonetic encoding)...")
     with open("major.html", "w") as txt_file:
-        txt_file.write(read_file(html_header))
-        txt_file.write(read_file(html_description))
+        txt_file.write("<h1>" + title + "</h1>\n")
         for (num, words) in sorted(num_map.items()):
             word_list = ', '.join(words)
             if len(words) != 0:
                 txt_file.write(f'<p><b>Number {num}</b><br>{word_list}<br>')
-        txt_file.write(read_file(html_footer))
