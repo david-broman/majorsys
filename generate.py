@@ -6,6 +6,8 @@ import json
 import xmltodict
 import csv
 import sys
+import os
+
 
 
 # Classes of words'
@@ -13,23 +15,25 @@ noun = "nn"
 verb = "vb"
 adjective = "jj"
 
-if len(sys.argv) <= 6:
+if len(sys.argv) <= 5:
     print("Usage:")
-    print("  python3 generate <database-file> <out-file> <no-of-digits> " +
-          "<include-larger-nums> <word-type> <title>")
+    print("  python3 generate <out-file> <#digits> " +
+          "<include-larger> <word-type> <title>")
     print("\nExample:")
-    print("  python3 generate.py folkets_sv_en_public.xml major.html " + \
+    print("  python3 generate.py major.html " + \
           f'3 false noun "Test"\n')
     exit(1)
 
-database = sys.argv[1]
-output_file = sys.argv[2]
-no_of_digits = int(sys.argv[3])
-include_larger = True if sys.argv[4] == "true" else False
-word_type = noun if sys.argv[5] == "noun" else \
-    (verb if sys.argv[5] == "verb" else adjective)
-title = sys.argv[6]
+output_file = sys.argv[1]
+no_of_digits = int(sys.argv[2])
+include_larger = True if sys.argv[3] == "true" else False
+word_type = noun if sys.argv[4] == "noun" else \
+    (verb if sys.argv[4] == "verb" else adjective)
+title = sys.argv[5]
 
+main_path = os.path.abspath(os.path.dirname(sys.argv[0]))
+database_file = main_path + "/folkets_sv_en_public.xml"
+patch_file = main_path + "/patch.csv"
 
 # Mapping of phonetic IPA symbols to numbers. Note that focus is on Swedish sounds.
 pmap = {
@@ -129,7 +133,7 @@ def my_endswith(str, lst):
 
 
 # Open the free Swedish database with words
-with open(database) as xml_file:
+with open(database_file) as xml_file:
 
     # Read, parse, and convert the lexicon to a dictionary
     print("Parsing XML file...")
@@ -151,12 +155,16 @@ with open(database) as xml_file:
     # Format: word,phonetic,class,number
     # If a number is given, it is taken as the truth
     # If class = 'remove', then the word is removed instead of added.
-    with open("patch.csv", 'r') as csv_file:
+    patch_list = []
+    with open(patch_file, 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         for r in csv_reader:
             if r[2] == "remove":
                 del words[r[0]]
-            words[r[0]] = (r[1],r[2])
+            if r[3] == "":
+                words[r[0]] = (r[1],r[2])
+            else:
+                patch_list.append((r[0],r[2],r[3]))
 
     # Remove strings with space from words
     for w in [w for (w,_) in words.items() if ' ' in w]:
@@ -189,24 +197,24 @@ with open(database) as xml_file:
         no_ok = 0
         no_error = 0
         for (word,(phonetic,class_)) in words.items():
-          if phonetic != "":
-              number_p = extract_from_phonetic(phonetic)
-              txt_file.write(f'\"{word}\", \"{phonetic}\", {number_p}\n')
-              number_w = extract_from_word(word)
-              # Fix strange ending of phonetic
-              if number_p != number_w:
-                  if (my_endswith(phonetic, ["er","ar","a:r", "e:r",
-                                             "å:r", "o:r", "ir", "i:r"])
-                      and number_w == number_p[0:len(number_p)-1]):
-                    number_p = number_p[0:len(number_p)-1]
-              word_map[word] = (number_p, class_)
+            if phonetic != "":
+                number_p = extract_from_phonetic(phonetic)
+                txt_file.write(f'\"{word}\", \"{phonetic}\", {number_p}\n')
+                number_w = extract_from_word(word)
+                # Fix strange ending of phonetic
+                if number_p != number_w:
+                    if (my_endswith(phonetic, ["er","ar","a:r", "e:r",
+                                               "å:r", "o:r", "ir", "i:r"])
+                    and number_w == number_p[0:len(number_p)-1]):
+                        number_p = number_p[0:len(number_p)-1]
+                word_map[word] = (number_p, class_)
 
-              if number_p == number_w:
-                  no_ok += 1
-              else:
-                  no_error += 1
-                  #print(f'word: \"{word}\", phonetic: \"{phonetic}\", ')
-                  #print(f'number_w: {number_w}, number_p: {number_p}\n')
+                if number_p == number_w:
+                    no_ok += 1
+                else:
+                    no_error += 1
+        for (w,c,n) in patch_list:
+            word_map[w] = (n,c)
 
         # Summarize errors when extracting from words
         # print(f'  Number of tests for number extraction: {no_ok + no_error}')
@@ -227,7 +235,7 @@ with open(database) as xml_file:
 
     # Generate html file
     print("Generates HTML file (currently only using phonetic encoding)...")
-    with open("major.html", "w") as txt_file:
+    with open(output_file, "w") as txt_file:
         txt_file.write("<h1>" + title + "</h1>\n")
         for (num, words) in sorted(num_map.items()):
             word_list = ', '.join(words)
