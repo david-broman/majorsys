@@ -213,6 +213,7 @@ with open(database_file) as xml_file:
                     no_ok += 1
                 else:
                     no_error += 1
+
         for (w,c,n) in patch_list:
             word_map[w] = (n,c)
 
@@ -230,7 +231,7 @@ with open(database_file) as xml_file:
             if num2 in num_map:
                 num_map[num2].append(word)
             else:
-                num_map[num2] = []
+                num_map[num2] = [word]
     print("  Total number of generated numbers:", len(num_map))
 
     # Generate html file
