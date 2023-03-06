@@ -16,4 +16,4 @@ Note that you need to download the file `folkets_sv_en_public.xml` from [this lo
 
 You can also extend the generated words by adding items in the file `patch.csv`. Each line contains one-word entry in the format `"word, phonetic, class, number"`. A word must always be given, but the phonetic number is optional. The class should be `nn` for a noun, `vb` for a verb, and `jj` for an adjective. If the class is `remove`, then the word will not be used, even if it existed in the database. Finally, if the number is given, then this word will be used in the output with the specific number.
 
-You can find already generated lists [on this page](https://people.kth.se/~dbro/majorsys.html). If you use this script, please add a link to the page below or just credits.
+You can find an already generated list [on this page](https://people.kth.se/~dbro/majorsys.html). If you make use this script, please add a link to the page above, or just give credits.
