@@ -1,5 +1,10 @@
-# Simple scripts that extracts numbers for Swedish words, according
-# to the mnemonic major system
+# A simple script that extracts numbers for Swedish words, according
+# to the mnemonic major system.
+#
+# The current version makes only use of phonetics in the database.
+# The procedure for extracting words without phonetics is experimental,
+# and is not used by default.
+#
 # By David Broman (C) Copyright 2023. MIT License.
 
 import json
